@@ -91,7 +91,7 @@ if (loginForm) {
       .then(() => {
         showNotification("MindEase login successful! Redirecting to your dashboard.", 'success');
         // --- CORRECTED REDIRECT ---
-        window.location.href = "index.html"; 
+        window.location.href = "dashboard.html"; 
       })
       .catch(() => {
         showNotification("Invalid email or password", 'error');
@@ -127,7 +127,7 @@ window.logout = function () {
 
 // Session Check (used in dashboard.html)
 onAuthStateChanged(auth, (user) => {
-  if (window.location.pathname.includes("dashboard.html") && !user) {
+  if (window.location.pathname.includes("index.html") && !user) {
     // Redirect unauthenticated users back to the app index page for simplicity
     window.location.href = "index.html"; 
   }
