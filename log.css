@@ -33,6 +33,7 @@ form h2 {
 }
 
 /* Input fields */
+input[type="text"],
 input[type="email"],
 input[type="password"] {
   width: 100%;
