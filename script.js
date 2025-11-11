@@ -1,7 +1,3 @@
-// Mental Health Wellness App JavaScript
-
-// The following line is CRITICAL: it sets a global reference for external scripts (like auth.js)
-// to access methods on the MindWellApp instance.\
 window.app = null; 
 
 // --- API Configuration (NOW BYPASSED FOR RELIABILITY) ---
@@ -238,8 +234,25 @@ class MindWellApp {
         if (soundName !== 'silence') {
             const player = this.soundPlayers[soundName];
             if (player) {
-                // FIX: Ensure AudioContext starts correctly with a user gesture
-                Tone.start().then(() => {
+                
+                // --- MODIFIED FIX ---
+                // Create a promise that resolves when Tone is ready.
+                // This ensures we only call Tone.start() if the audio context
+                // is not already 'running'.
+                const startTone = () => {
+                    if (typeof Tone === 'undefined') {
+                        return Promise.reject(new Error("Tone.js not loaded"));
+                    }
+                    if (Tone.context.state === 'running') {
+                        return Promise.resolve(); // Already running, no action needed
+                    }
+                    // Not running, so try to start it.
+                    // This must be called from a user gesture (which this function is)
+                    return Tone.start();
+                };
+
+                startTone().then(() => {
+                // --- END MODIFIED FIX ---
                     // Start the new sound player
                     player.start();
                     this.isSoundPlaying = true;
@@ -396,6 +409,18 @@ class MindWellApp {
     toggleMeditation() {
         const playPauseBtn = document.getElementById('playPauseBtn');
         const circle = document.getElementById('meditationCircle');
+        
+        // --- ADDED FIX ---
+        // Try to start/resume the AudioContext on the user's click
+        // This "primes" the audio context for when startMeditation calls playAmbientSound.
+        if (typeof Tone !== 'undefined' && Tone.context.state !== 'running') {
+            Tone.start().catch(e => {
+                // This is just a priming attempt, the real error will be
+                // caught in playAmbientSound if it fails again.
+                console.warn("AudioContext failed to start on toggle: ", e);
+            });
+        }
+        // --- END ADDED FIX ---
         
         if (this.isPlaying) {
             this.pauseMeditation();
@@ -1195,4 +1220,3 @@ window.addEventListener('unhandledrejection', (e) => {
     console.error('Unhandled promise rejection:', e.reason);
     e.preventDefault();
 });
-
